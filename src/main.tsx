@@ -5,11 +5,14 @@ import App from "./App.tsx";
 import "unfonts.css";
 import { Provider } from "react-redux";
 import store from "./redux/store.ts";
+import { AuthProvider } from "./components/authProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </Provider>
   </StrictMode>
 );

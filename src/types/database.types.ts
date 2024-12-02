@@ -93,42 +93,179 @@ export type Database = {
           },
         ]
       }
+      content_warnings: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      genres: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
       stories: {
         Row: {
-          content_warnings: string[] | null
           created_at: string | null
           creator_id: string | null
           description: string | null
-          genre: string | null
           initial_setup: string | null
           slug: string | null
           story_id: number
-          target_age: string | null
+          target_age_id: number | null
           title: string
         }
         Insert: {
-          content_warnings?: string[] | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
-          genre?: string | null
           initial_setup?: string | null
           slug?: string | null
           story_id?: number
-          target_age?: string | null
+          target_age_id?: number | null
           title: string
         }
         Update: {
-          content_warnings?: string[] | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
-          genre?: string | null
           initial_setup?: string | null
           slug?: string | null
           story_id?: number
-          target_age?: string | null
+          target_age_id?: number | null
           title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_target_age_id_fkey"
+            columns: ["target_age_id"]
+            isOneToOne: false
+            referencedRelation: "target_ages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_content_warnings: {
+        Row: {
+          content_warning_id: number
+          story_id: number
+        }
+        Insert: {
+          content_warning_id: number
+          story_id: number
+        }
+        Update: {
+          content_warning_id?: number
+          story_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_content_warnings_content_warning_id_fkey"
+            columns: ["content_warning_id"]
+            isOneToOne: false
+            referencedRelation: "content_warnings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_content_warnings_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["story_id"]
+          },
+        ]
+      }
+      story_genres: {
+        Row: {
+          genre_id: number
+          story_id: number
+        }
+        Insert: {
+          genre_id: number
+          story_id: number
+        }
+        Update: {
+          genre_id?: number
+          story_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_genres_genre_id_fkey"
+            columns: ["genre_id"]
+            isOneToOne: false
+            referencedRelation: "genres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_genres_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["story_id"]
+          },
+        ]
+      }
+      target_ages: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string
         }
         Relationships: []
       }

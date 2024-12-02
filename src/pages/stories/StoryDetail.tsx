@@ -13,7 +13,7 @@ import Modal from "../../components/modal.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-
+import {Navbar} from "../../pages/Homepage"
 function StoryDetail() {
   const nodeWidth = 300;
   const nodeHeight = 80;
@@ -471,6 +471,7 @@ function StoryDetail() {
 
   return (
     <div className="h-screen w-full">
+      <Navbar />
       <FlowChart
         initialElements={generateFlowElements()}
         onAddChoice={handleAddChoice}

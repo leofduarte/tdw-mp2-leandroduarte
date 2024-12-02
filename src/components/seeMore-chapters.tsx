@@ -1,4 +1,3 @@
-// seeMore-chapters.tsx
 import React from "react";
 
 interface SeeMoreChapterProps {

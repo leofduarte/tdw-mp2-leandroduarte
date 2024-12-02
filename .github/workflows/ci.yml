@@ -1,0 +1,41 @@
+name: CI-BUILD
+
+on:
+  push:
+    branches:
+      - main
+      - feature
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "21.x"
+
+      - name: Install dependencies
+        run: npm install
+        if: success()
+
+      - name: Build
+        run: npm run build
+        if: success()
+
+      - name: Test
+        run: npm run test
+        if: success()
+
+      - name: Lint
+        run: npm run lint
+        if: success()
+
+      - name: Coverage
+        run: npm run coverage

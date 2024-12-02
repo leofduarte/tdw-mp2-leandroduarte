@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, BookOpen, GitBranch, ArrowRight } from "lucide-react";
 import { Story, Chapter, Choice } from "@/types/stories.types";
 import supabase from "../../config/supabase-client";
-
+import { useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { setSelectedStory } from "../../slices/storySlice";
+import { RootState } from "../../redux/store";
+import { Navbar } from "../../pages/Homepage"
 const StoryInterface = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
@@ -20,6 +24,13 @@ const StoryInterface = () => {
   const [isAddingChapter, setIsAddingChapter] = useState(false);
   const [newChoiceText, setNewChoiceText] = useState("");
   const [newChapterText, setNewChapterText] = useState("");
+  const { slug } = useParams<{ slug: string }>();
+  const dispatch = useDispatch();
+  const selectedStory = useSelector(
+    (state: RootState) => state.story.selectedStory
+  );
+  const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -38,41 +49,67 @@ const StoryInterface = () => {
 
   useEffect(() => {
     const fetchStoryData = async () => {
-      const { data: storyData } = await supabase
-        .from("stories")
-        .select("*")
-        .limit(1)
-        .single();
+      if (!slug) return;
 
-      if (storyData) {
-        setStory(storyData);
-        const { data: chaptersData } = await supabase
-          .from("chapters")
+      try {
+        setIsLoading(true);
+
+        // Always fetch fresh story data on initial load
+        const { data: storyData, error: storyError } = await supabase
+          .from("stories")
           .select("*")
-          .eq("story_id", storyData.story_id);
+          .eq("slug", slug)
+          .single();
 
-        if (chaptersData) {
+        if (storyError) throw storyError;
+        if (!storyData) throw new Error("Story not found");
+
+        // Set both local and Redux state
+        setStory(storyData);
+        dispatch(setSelectedStory(storyData));
+
+        // 2. Only fetch chapters if we have a valid story_id
+        if (storyData?.story_id) {
+          const { data: chaptersData, error: chaptersError } = await supabase
+            .from("chapters")
+            .select("*")
+            .eq("story_id", storyData.story_id);
+
+          if (chaptersError) throw chaptersError;
+          if (!chaptersData?.length) {
+            console.log("No chapters found for this story");
+            return;
+          }
+
           setChapters(chaptersData);
           const initialChapter = chaptersData.find((c) => !c.parent_choice_id);
-          setCurrentChapter(initialChapter || null);
-          setChapterHistory([initialChapter || null].filter(Boolean));
 
-          const { data: choicesData } = await supabase
-            .from("choices")
-            .select("*")
-            .in(
-              "chapter_id",
-              chaptersData.map((c) => c.chapter_id)
-            );
+          if (initialChapter) {
+            setCurrentChapter(initialChapter);
+            setChapterHistory([initialChapter]);
 
-          if (choicesData) {
-            setChoices(choicesData);
+            // 3. Fetch choices for chapters
+            const { data: choicesData, error: choicesError } = await supabase
+              .from("choices")
+              .select("*")
+              .in(
+                "chapter_id",
+                chaptersData.map((c) => c.chapter_id)
+              );
+
+            if (choicesError) throw choicesError;
+            if (choicesData) {
+              setChoices(choicesData);
+            }
           }
         }
+      } catch (error) {
+        console.error("Error fetching story data:", error);
       }
     };
+
     fetchStoryData();
-  }, []);
+  }, [slug, dispatch]);
 
   const getNextChapters = (choiceId: number) => {
     return chapters.filter((chapter) => chapter.parent_choice_id === choiceId);
@@ -171,7 +208,9 @@ const StoryInterface = () => {
   };
 
   return (
-    <div className="flex text-black">
+    <>
+      <Navbar />
+    <div className="flex text-black">      
       {/* Left sidebar - Path History */}
       <div className="w-1/4 border-r p-4 bg-gray-50 min-h-screen">
         <div className="flex items-center gap-2 mb-6">
@@ -369,6 +408,7 @@ const StoryInterface = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 export default StoryInterface;
