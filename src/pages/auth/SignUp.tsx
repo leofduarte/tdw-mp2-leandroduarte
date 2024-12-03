@@ -30,7 +30,7 @@ export default function Signup() {
     const { error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
-      setError(error.message);
+      setError(error.message);1
     } else {
       setSuccess("Check your email to confirm your sign-up!");
     }
