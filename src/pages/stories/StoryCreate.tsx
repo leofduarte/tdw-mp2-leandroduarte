@@ -193,7 +193,7 @@ export default function StoryCreate() {
 
   return (
     <>
-      <div className="bg-gradient-to-b from-[#242424] to-gray-900 h-screen">
+      <div className="bg-gradient-to-b from-[#242424] to-gray-900 h-full">
         <Navbar />
         <div className="py-8 mx-auto flex flex-col place-content-center justify-center max-w-screen-lg w-full my-auto">
           <Card className="bg-transparent">
