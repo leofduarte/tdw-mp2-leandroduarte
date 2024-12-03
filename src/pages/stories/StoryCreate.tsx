@@ -12,7 +12,6 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Check } from "lucide-react";
 import supabase from "../../config/supabase-client.ts";
 import { Separator } from "@/components/ui/separator";
 import { Navbar } from "../Homepage";
@@ -194,9 +193,11 @@ export default function StoryCreate() {
 
   return (
     <>
+    <div className="bg-gradient-to-b from-[#242424] to-gray-900">
+
       <Navbar />
       <div className="py-8 mx-auto flex flex-col place-content-center justify-center max-w-screen-lg w-full max-h-min">
-        <Card className="bg-[#242424]">
+        <Card className="bg-transparent">
           <CardHeader>
             <CardTitle className="text-white">Create New Story</CardTitle>
           </CardHeader>
@@ -368,6 +369,7 @@ export default function StoryCreate() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </>
   );
 }

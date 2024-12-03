@@ -1,4 +1,3 @@
-// StoryDetail.tsx
 import supabase from "../../config/supabase-client.ts";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -13,7 +12,20 @@ import Modal from "../../components/modal.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
-import {Navbar} from "../../pages/Homepage"
+import { Navbar } from "../../pages/Homepage";
+
+type StoryResponse = {
+  story_id: number;
+  title: string;
+  description: string;
+  creator_id: string;
+  created_at: string;
+  initial_setup: string;
+  target_age_id: number;
+  slug: string;
+  cover_image: string | null;
+};
+
 function StoryDetail() {
   const nodeWidth = 300;
   const nodeHeight = 80;
@@ -29,8 +41,6 @@ function StoryDetail() {
   const [choices, setChoices] = useState<Choice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-
-  // Modal Statehan
   const [isTextModalOpen, setIsTextModalOpen] = useState(false);
   const [isChoiceModalOpen, setIsChoiceModalOpen] = useState(false);
   const [currentChapterId, setCurrentChapterId] = useState<number | null>(null);
@@ -58,17 +68,30 @@ function StoryDetail() {
         let storyData: Story | null = selectedStory;
 
         if (!storyData || storyData.slug !== slug) {
-          const { data, error: storyError } = await supabase
+          const { data: storyResponse, error: storyError } = await supabase
             .from("stories")
-            .select("*")
+            .select(
+              "story_id, title, description, creator_id, created_at, initial_setup, target_age_id, slug, cover_image"
+            )
             .eq("slug", slug)
-            .single();
+            .single<StoryResponse>();
 
           if (storyError) throw storyError;
-          if (!data) throw new Error("Story not found");
+          if (!storyResponse) throw new Error("Story not found");
 
-          storyData = data;
-          dispatch(setSelectedStory(data));
+          storyData = {
+            story_id: storyResponse.story_id,
+            title: storyResponse.title,
+            description: storyResponse.description,
+            creator_id: storyResponse.creator_id,
+            created_at: storyResponse.created_at,
+            initial_setup: storyResponse.initial_setup,
+            target_age_id: storyResponse.target_age_id,
+            slug: storyResponse.slug,
+            cover_image: storyResponse.cover_image,
+          } as Story;
+
+          dispatch(setSelectedStory(storyData));
         }
 
         const { data: chaptersData, error: chaptersError } = await supabase

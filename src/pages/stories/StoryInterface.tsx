@@ -5,10 +5,22 @@ import { PlusCircle, BookOpen, GitBranch, ArrowRight } from "lucide-react";
 import { Story, Chapter, Choice } from "@/types/stories.types";
 import supabase from "../../config/supabase-client";
 import { useParams } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setSelectedStory } from "../../slices/storySlice";
-import { RootState } from "../../redux/store";
-import { Navbar } from "../../pages/Homepage"
+import { Navbar } from "../../pages/Homepage";
+
+type StoryResponse = {
+  story_id: number;
+  title: string;
+  description: string;
+  creator_id: string;
+  created_at: string;
+  initial_setup: string;
+  target_age_id: number;
+  slug: string;
+  cover_image: string | null;
+};
+
 const StoryInterface = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [story, setStory] = useState<Story | null>(null);
@@ -26,11 +38,7 @@ const StoryInterface = () => {
   const [newChapterText, setNewChapterText] = useState("");
   const { slug } = useParams<{ slug: string }>();
   const dispatch = useDispatch();
-  const selectedStory = useSelector(
-    (state: RootState) => state.story.selectedStory
-  );
-  const [isLoading, setIsLoading] = useState(true);
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -54,19 +62,22 @@ const StoryInterface = () => {
       try {
         setIsLoading(true);
 
-        // Always fetch fresh story data on initial load
         const { data: storyData, error: storyError } = await supabase
           .from("stories")
           .select("*")
           .eq("slug", slug)
-          .single();
+          .single<StoryResponse>();
 
         if (storyError) throw storyError;
         if (!storyData) throw new Error("Story not found");
 
-        // Set both local and Redux state
-        setStory(storyData);
-        dispatch(setSelectedStory(storyData));
+        const transformedStoryData: Story = {
+          ...storyData,
+          cover_image: storyData.cover_image || null,
+        };
+
+        setStory(transformedStoryData);
+        dispatch(setSelectedStory(transformedStoryData));
 
         // 2. Only fetch chapters if we have a valid story_id
         if (storyData?.story_id) {
@@ -105,6 +116,8 @@ const StoryInterface = () => {
         }
       } catch (error) {
         console.error("Error fetching story data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -210,204 +223,210 @@ const StoryInterface = () => {
   return (
     <>
       <Navbar />
-    <div className="flex text-black">      
-      {/* Left sidebar - Path History */}
-      <div className="w-1/4 border-r p-4 bg-gray-50 min-h-screen">
-        <div className="flex items-center gap-2 mb-6">
-          <GitBranch className="w-5 h-5" />
-          <h2 className="font-semibold">Your Story Path</h2>
-        </div>
-        <div className="space-y-4">
-          {chapterHistory.map((chapter, index) => (
-            <div key={chapter.chapter_id} className="relative">
-              <div className="p-3 bg-white rounded border hover:bg-gray-50">
-                <div className="font-medium mb-1">Chapter {index + 1}</div>
-                <div className="text-sm text-gray-600">
-                  {chapter.text.substring(0, 60)}...
-                </div>
-              </div>
-              {index < chapterHistory.length - 1 && (
-                <div className="flex justify-center my-2">
-                  <ArrowRight className="w-4 h-4 text-gray-400" />
-                </div>
-              )}
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="flex text-black">
+          {/* Left sidebar - Path History */}
+          <div className="w-1/4 border-r p-4 bg-gray-50 min-h-screen">
+            <div className="flex items-center gap-2 mb-6">
+              <GitBranch className="w-5 h-5" />
+              <h2 className="font-semibold">Your Story Path</h2>
             </div>
-          ))}
-
-          {selectedChoice && (
-            <div className="mt-4">
-              <div className="p-3 bg-blue-50 rounded border border-blue-200">
-                <div className="font-medium text-blue-700">
-                  Selected Choice:
-                </div>
-                <div className="text-sm text-blue-600">
-                  {selectedChoice.text}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Main content area */}
-      <div className="flex-1 p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              {story?.title || "Loading..."}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Current Chapter */}
-            <div className="prose max-w-none mb-8">
-              <p className="text-lg">
-                {currentChapter?.text || "Loading chapter..."}
-              </p>
-            </div>
-
-            {/* Choice Selection */}
-            {!selectedChoice && currentChapter && (
-              <>
-                {getCurrentChoices().length > 0 ? (
-                  <div className="space-y-4 mb-8">
-                    <h3 className="font-semibold">What happens next?</h3>
-                    <div className="grid gap-3">
-                      {getCurrentChoices().map((choice) => (
-                        <Button
-                          key={choice.choice_id}
-                          variant="outline"
-                          className="justify-start text-left"
-                          onClick={() => handleChoiceSelect(choice)}
-                        >
-                          {choice.text}
-                        </Button>
-                      ))}
+            <div className="space-y-4">
+              {chapterHistory.map((chapter, index) => (
+                <div key={chapter.chapter_id} className="relative">
+                  <div className="p-3 bg-white rounded border hover:bg-gray-50">
+                    <div className="font-medium mb-1">Chapter {index + 1}</div>
+                    <div className="text-sm text-gray-600">
+                      {chapter.text.substring(0, 60)}...
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center p-6 bg-gray-50 rounded-lg">
-                    <h3 className="text-xl font-semibold mb-2">The End</h3>
-                    <p className="text-gray-600">
-                      This branch of the story has ended.
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Chapter Selection after Choice */}
-            {selectedChoice &&
-              getNextChapters(selectedChoice.choice_id).length === 0 && (
-                <div className="space-y-4">
-                  <div className="text-gray-500">
-                    This choice has no continuations yet. Add one to continue
-                    the story.
-                  </div>
-                  {!isAddingChapter ? (
-                    <Button
-                      className="w-full flex items-center gap-2"
-                      onClick={() => setIsAddingChapter(true)}
-                    >
-                      <PlusCircle className="w-5 h-5" />
-                      Add New Chapter
-                    </Button>
-                  ) : (
-                    <div className="space-y-4">
-                      <textarea
-                        className="w-full p-2 border rounded text-white"
-                        rows={3}
-                        placeholder="Enter your chapter text..."
-                        value={newChapterText}
-                        onChange={(e) => setNewChapterText(e.target.value)}
-                      />
-                      <div className="flex gap-2">
-                        <Button onClick={handleAddChapter}>Save Chapter</Button>
-                        <Button
-                          variant="default"
-                          onClick={() => {
-                            setIsAddingChapter(false);
-                            setNewChapterText("");
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
+                  {index < chapterHistory.length - 1 && (
+                    <div className="flex justify-center my-2">
+                      <ArrowRight className="w-4 h-4 text-gray-400" />
                     </div>
                   )}
                 </div>
-              )}
+              ))}
 
-            {availableNextChapters.length > 1 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold">Choose the next chapter:</h3>
-                <div className="grid gap-3">
-                  {availableNextChapters.map((chapter) => (
-                    <Button
-                      key={chapter.chapter_id}
-                      variant="outline"
-                      className="justify-start text-left"
-                      onClick={() => selectNextChapter(chapter)}
-                    >
-                      {chapter.text.substring(0, 60)}...
-                    </Button>
-                  ))}
-                </div>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setSelectedChoice(null);
-                    setAvailableNextChapters([]);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            )}
-
-            {currentChapter && getCurrentChoices().length === 0 && (
-              <div className="space-y-4">
-                <div className="text-gray-700">
-                  This chapter has no choices yet. Add one to continue the
-                  story.
-                </div>
-                {!isAddingChoice ? (
-                  <Button
-                    className="w-full flex items-center gap-2"
-                    onClick={() => setIsAddingChoice(true)}
-                  >
-                    <PlusCircle className="w-5 h-5" />
-                    Add New Choice
-                  </Button>
-                ) : (
-                  <div className="space-y-4">
-                    <textarea
-                      className="w-full p-2 border rounded text-white"
-                      rows={3}
-                      placeholder="Enter your choice text..."
-                      value={newChoiceText}
-                      onChange={(e) => setNewChoiceText(e.target.value)}
-                    />
-                    <div className="flex gap-2">
-                      <Button onClick={handleAddChoice}>Save Choice</Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setIsAddingChoice(false);
-                          setNewChoiceText("");
-                        }}
-                      >
-                        Cancel
-                      </Button>
+              {selectedChoice && (
+                <div className="mt-4">
+                  <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                    <div className="font-medium text-blue-700">
+                      Selected Choice:
+                    </div>
+                    <div className="text-sm text-blue-600">
+                      {selectedChoice.text}
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Main content area */}
+          <div className="flex-1 p-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" />
+                  {story?.title || "Loading..."}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Current Chapter */}
+                <div className="prose max-w-none mb-8">
+                  <p className="text-lg">
+                    {currentChapter?.text || "Loading chapter..."}
+                  </p>
+                </div>
+
+                {/* Choice Selection */}
+                {!selectedChoice && currentChapter && (
+                  <>
+                    {getCurrentChoices().length > 0 ? (
+                      <div className="space-y-4 mb-8">
+                        <h3 className="font-semibold">What happens next?</h3>
+                        <div className="grid gap-3">
+                          {getCurrentChoices().map((choice) => (
+                            <Button
+                              key={choice.choice_id}
+                              variant="outline"
+                              className="justify-start text-left"
+                              onClick={() => handleChoiceSelect(choice)}
+                            >
+                              {choice.text}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center p-6 bg-gray-50 rounded-lg">
+                        <h3 className="text-xl font-semibold mb-2">The End</h3>
+                        <p className="text-gray-600">
+                          This branch of the story has ended.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+
+                {/* Chapter Selection after Choice */}
+                {selectedChoice &&
+                  getNextChapters(selectedChoice.choice_id).length === 0 && (
+                    <div className="space-y-4">
+                      <div className="text-gray-500">
+                        This choice has no continuations yet. Add one to
+                        continue the story.
+                      </div>
+                      {!isAddingChapter ? (
+                        <Button
+                          className="w-full flex items-center gap-2"
+                          onClick={() => setIsAddingChapter(true)}
+                        >
+                          <PlusCircle className="w-5 h-5" />
+                          Add New Chapter
+                        </Button>
+                      ) : (
+                        <div className="space-y-4">
+                          <textarea
+                            className="w-full p-2 border rounded text-white"
+                            rows={3}
+                            placeholder="Enter your chapter text..."
+                            value={newChapterText}
+                            onChange={(e) => setNewChapterText(e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <Button onClick={handleAddChapter}>
+                              Save Chapter
+                            </Button>
+                            <Button
+                              variant="default"
+                              onClick={() => {
+                                setIsAddingChapter(false);
+                                setNewChapterText("");
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                {availableNextChapters.length > 1 && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold">Choose the next chapter:</h3>
+                    <div className="grid gap-3">
+                      {availableNextChapters.map((chapter) => (
+                        <Button
+                          key={chapter.chapter_id}
+                          variant="outline"
+                          className="justify-start text-left"
+                          onClick={() => selectNextChapter(chapter)}
+                        >
+                          {chapter.text.substring(0, 60)}...
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        setSelectedChoice(null);
+                        setAvailableNextChapters([]);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+
+                {currentChapter && getCurrentChoices().length === 0 && (
+                  <div className="space-y-4">
+                    <div className="text-gray-700">
+                      This chapter has no choices yet. Add one to continue the
+                      story.
+                    </div>
+                    {!isAddingChoice ? (
+                      <Button
+                        className="w-full flex items-center gap-2"
+                        onClick={() => setIsAddingChoice(true)}
+                      >
+                        <PlusCircle className="w-5 h-5" />
+                        Add New Choice
+                      </Button>
+                    ) : (
+                      <div className="space-y-4">
+                        <textarea
+                          className="w-full p-2 border rounded text-white"
+                          rows={3}
+                          placeholder="Enter your choice text..."
+                          value={newChoiceText}
+                          onChange={(e) => setNewChoiceText(e.target.value)}
+                        />
+                        <div className="flex gap-2">
+                          <Button onClick={handleAddChoice}>Save Choice</Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              setIsAddingChoice(false);
+                              setNewChoiceText("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
     </>
   );
 };

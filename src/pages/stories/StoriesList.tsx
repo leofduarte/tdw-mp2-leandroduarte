@@ -31,9 +31,6 @@ export default function StoriesList() {
   const [data, setData] = useState<Story[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
   const [targetAges, setTargetAges] = useState<string[]>([]);
-  const [selectedGenre, setSelectedGenre] = useState<string>("all");
-  const [selectedAge, setSelectedAge] = useState<string>("all");
-  const [sortOption, setSortOption] = useState<string>("created_at");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -208,7 +205,7 @@ export default function StoriesList() {
 
         const { data, error } = await query;
         if (error) throw error;
-        setData(data);
+        setData(data as Story[]);
       } catch (err: any) {
         console.error("Error fetching stories:", err);
         setError("Failed to load stories.");
@@ -220,7 +217,7 @@ export default function StoriesList() {
   }, [selectedGenres, selectedAges, sortField, sortDirection, searchQuery]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-[#242424] to-gray-900">
       <Navbar />
       <div className="p-8">
         <h1 className="text-4xl font-bold text-center mb-8 text-white">
@@ -337,7 +334,7 @@ export default function StoriesList() {
             {data.map((story) => (
               <Card
                 key={story.story_id}
-                className="shadow-lg hover:shadow-2xl transition-shadow duration-300 border-2 rounded-lg md:min-h-[500px] lg:min-h-[450px]"
+                className="shadow-lg hover:shadow-2xl transition-shadow bg-[#242424] duration-300 border border-gray-600 rounded-lg md:min-h-[500px] lg:min-h-[450px]"
               >
                 <CardHeader
                   className="h-48 bg-cover bg-center"
@@ -348,51 +345,58 @@ export default function StoriesList() {
                   {/* Optional: Overlay or title can be added here */}
                 </CardHeader>
                 <CardContent className="p-4">
-                  <CardTitle className="text-xl font-semibold text-gray-800">
+                  <CardTitle className="text-xl font-semibold text-gray-300">
                     {story.title}
                   </CardTitle>
-                  <p className="mt-2 text-gray-600 line-clamp-3">
+                  <p className="mt-2 text-gray-50 line-clamp-3">
                     {story.description}
                   </p>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                  <div className="w-full p-4 bg-gray-50 flex flex-col justify-between items-center">
-                    <span className="text-sm text-gray-500">
+                  <div className="w-full p-4 flex flex-col justify-between items-center">
+                    <span className="text-sm text-gray-200">
                       {story.story_genres
-                        ?.map((g) => g.genre?.name)
+                        ?.map(
+                          (g: { genre?: { name: string } }) => g.genre?.name
+                        )
                         .filter(Boolean)
-                        .join(", ")}{" "}
-                      • {story.target_age?.name}
+                        .join(", ")}
+                      • {story.target_age?.name || ""}
                     </span>
                     <span className="text-sm text-gray-500">
-                      {new Date(story.created_at).toLocaleDateString()}
+                      {story.created_at
+                        ? new Date(story.created_at).toLocaleDateString()
+                        : "No date"}
                     </span>
                   </div>
-                  <div className="w-full flex gap-2 text-black">
+                  <div className="w-full flex text-black">
                     <Link
                       to={`/stories/quiz/${story.slug}`}
-                      className="flex-1 py-2 px-4 hover:text-red-700 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      className="flex-1 text-xl py-2 px-4 text-yellow-500  hover:text-yellow-600 rounded-lg flex items-center justify-center gap-2 transition-colors"
                       onClick={(e) => {
-                        e.preventDefault(); // Prevent card click
+                        e.preventDefault();
                         handleStoryClick(story);
-                        // Navigate programmatically
                         navigate(`/stories/quiz/${story.slug}`);
                       }}
                     >
-                      <Brain className="w-4 h-4" />
-                      <span>Quiz Mode</span>
+                      <Button className="bg-pink-500 hover:bg-pink-600 text-white transition">
+                        <Brain className="w-4 h-4" />
+                        Quiz Mode
+                      </Button>
                     </Link>
                     <Link
                       to={`/stories/flow/${story.slug}`}
-                      className="flex-1 py-2 px-4 hover:text-red-700 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      className="flex-1 text-xl py-2 px-4 text-yellow-500 hover:text-yellow-700 rounded-lg flex items-center justify-center gap-2 transition-colors"
                       onClick={(e) => {
                         e.preventDefault();
                         handleStoryClick(story);
                         navigate(`/stories/flow/${story.slug}`);
                       }}
                     >
-                      <GitBranch className="w-4 h-4" />
-                      <span>Flow Mode</span>
+                      <Button className=" bg-pink-500 hover:bg-pink-600 text-white transition">
+                        <GitBranch className="w-4 h-4" />
+                        Flow Mode
+                      </Button>
                     </Link>
                   </div>
                 </CardFooter>
