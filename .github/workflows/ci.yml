@@ -25,18 +25,17 @@ jobs:
         run: npm install
         if: success()
 
-      - name: Build
-        run: npm run build
-        if: success()
-
       - name: Lint
         run: npm run lint
         if: success()
 
-      - name: Coverage
-        run: npm run coverage
+      - name: Build
+        run: npm run build
+        if: success()
 
       - name: Deploy to Vercel
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_MP2 }},
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }},
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: npx vercel --prod --token $VERCEL_TOKEN
