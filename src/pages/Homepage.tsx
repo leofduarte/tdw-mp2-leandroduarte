@@ -1,17 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import supabase from "../config/supabase-client";
-import { useEffect, useState } from "react";
-import { User } from "@supabase/supabase-js";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { BookOpen, PlusCircle, Library, Compass, User2 } from "lucide-react";
+import { BookOpen, PlusCircle, Compass } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +9,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
 import { clearUser } from "../slices/authSlice";
+import { useEffect, useState } from "react";
+import { Brain } from "lucide-react";
+import { GitBranch } from "lucide-react";
 
 export const Navbar = () => {
   const dispatch = useDispatch();
@@ -51,7 +41,13 @@ export const Navbar = () => {
         {/* Center - Navigation */}
         <div className="justify-self-center flex items-center space-x-6">
           <Link
-            to="/create"
+            to="/about-us"
+            className="text-white hover:text-yellow-300 transition"
+          >
+            About us
+          </Link>
+          <Link
+            to="/create-story"
             className="text-white hover:text-yellow-300 transition"
           >
             Create Story
@@ -120,11 +116,41 @@ export const Navbar = () => {
   );
 };
 
+interface Story {
+  story_id: number;
+  title: string;
+  description: string | null; // Allow null
+  slug: string | null;
+  cover_image: string | null;
+  created_at: string | null;
+  creator_id: string | null;
+  initial_setup: string | null;
+  target_age_id: number | null;
+}
+
 export default function Homepage() {
-  const location = useLocation();
+  const [stories, setStories] = useState<Story[]>([]);
+
+  useEffect(() => {
+    const fetchStories = async () => {
+      const { data, error } = await supabase
+        .from("stories")
+        .select("*")
+        .limit(3)
+        .order("story_id", { ascending: true }); // Updated from 'id' to 'story_id'
+
+      if (error) {
+        console.error("Error fetching stories:", error);
+      } else {
+        setStories(data);
+      }
+    };
+
+    fetchStories();
+  }, []);
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-gray-800 min-h-screen">
+    <div className="bg-gradient-to-b from-[#242424] to-gray-900 min-h-screen">
       <Navbar />
 
       {/* Hero Section */}
@@ -138,7 +164,7 @@ export default function Homepage() {
             and choices to craft unique storytelling experiences, and visualize
             your story structure with our flowchart view.
           </p>
-          <Link to="/create">
+          <Link to="/create-story">
             <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 transition">
               Start Creating
             </Button>
@@ -187,46 +213,31 @@ export default function Homepage() {
             Sample Stories
           </h2>
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-10">
-            {/* Replace with dynamic content */}
-            <div className="border-l-4 border-yellow-400 bg-gray-700 p-6 rounded-lg shadow-md hover:bg-gray-600 transition">
-              <h3 className="text-xl font-medium text-yellow-300">
-                Adventure in the Mountains
-              </h3>
-              <p className="mt-2 text-gray-300">
-                Join our hero on an epic journey through the rugged mountains.
-              </p>
-              <Link to="/stories/adventure-mountains">
-                <Button className="mt-4 bg-pink-500 hover:bg-pink-600 text-white transition">
-                  Read More
-                </Button>
-              </Link>
-            </div>
-            <div className="border-l-4 border-green-400 bg-gray-700 p-6 rounded-lg shadow-md hover:bg-gray-600 transition">
-              <h3 className="text-xl font-medium text-green-300">
-                Mystery of the Lost City
-              </h3>
-              <p className="mt-2 text-gray-300">
-                Uncover the secrets of the ancient lost city.
-              </p>
-              <Link to="/stories/lost-city">
-                <Button className="mt-4 bg-pink-500 hover:bg-pink-600 text-white transition">
-                  Read More
-                </Button>
-              </Link>
-            </div>
-            <div className="border-l-4 border-blue-400 bg-gray-700 p-6 rounded-lg shadow-md hover:bg-gray-600 transition">
-              <h3 className="text-xl font-medium text-blue-300">
-                Space Odyssey
-              </h3>
-              <p className="mt-2 text-gray-300">
-                Explore the vastness of space in this thrilling adventure.
-              </p>
-              <Link to="/stories/space-odyssey">
-                <Button className="mt-4 bg-pink-500 hover:bg-pink-600 text-white transition">
-                  Read More
-                </Button>
-              </Link>
-            </div>
+            {stories.map((story) => (
+              <div
+                key={story.story_id}
+                className="border-l-4 border-yellow-400 bg-gray-700 p-6 rounded-lg shadow-md hover:bg-gray-600 transition"
+              >
+                <h3 className="text-xl font-medium text-yellow-300">
+                  {story.title}
+                </h3>
+                <p className="mt-2 text-gray-300">{story.description}</p>
+                <div className="flex gap-4">
+                  <Link to={`/stories/quiz/${story.slug}`}>
+                    <Button className="mt-4 bg-pink-500 hover:bg-pink-600 text-white transition">
+                      <Brain className="w-4 h-4" />
+                      Quiz Mode
+                    </Button>
+                  </Link>
+                  <Link to={`/stories/flow/${story.slug}`}>
+                    <Button className="mt-4 bg-pink-500 hover:bg-pink-600 text-white transition">
+                      <GitBranch className="w-4 h-4" />
+                      Flow Mode
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -235,7 +246,7 @@ export default function Homepage() {
           <h2 className="text-3xl font-semibold text-white">
             Ready to Create Your Story?
           </h2>
-          <Link to="/create" className="mt-6 inline-block">
+          <Link to="/create-story" className="mt-6 inline-block">
             <Button className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-gray-900 transition">
               Get Started
             </Button>
