@@ -125,6 +125,7 @@ export type Database = {
       }
       stories: {
         Row: {
+          cover_image: string | null
           created_at: string | null
           creator_id: string | null
           description: string | null
@@ -135,6 +136,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
@@ -145,6 +147,7 @@ export type Database = {
           title: string
         }
         Update: {
+          cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
