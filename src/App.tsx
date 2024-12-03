@@ -1,10 +1,9 @@
-// src/App.tsx
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { setUser } from "./slices/authSlice";
 import supabase from "./config/supabase-client";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/protectedRoute";
 import Login from "./pages/auth/Login";
 import Homepage from "./pages/Homepage";
 import StoriesList from "./pages/stories/StoriesList";
@@ -13,6 +12,9 @@ import StoryCreate from "./pages/stories/StoryCreate";
 import Logout from "./pages/auth/Logout";
 import StoryInterface from "./pages/stories/StoryInterface";
 import Error404 from "./pages/error404";
+import PublicRoute from "./components/publicRoute";
+import AboutUs from "./pages/AboutUs";
+import Signup from "./pages/auth/SignUp";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -35,9 +37,34 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+
+        <Route 
+          path="/signup"
+          element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          }
+        />
 
         {/* Protected routes */}
+        <Route
+          path="/about-us"
+          element={
+            <ProtectedRoute>
+              <AboutUs />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/"
           element={
@@ -63,7 +90,7 @@ export default function App() {
           }
         />
         <Route
-          path="/create"
+          path="/create-story"
           element={
             <ProtectedRoute>
               <StoryCreate />
@@ -80,12 +107,7 @@ export default function App() {
         />
 
         {/* 404 */}
-        <Route
-          path="*"
-          element={
-            <Error404 />
-          }
-        />
+        <Route path="*" element={<Error404 />} />
 
         <Route
           path="/stories/quiz/:slug"
