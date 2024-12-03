@@ -199,7 +199,7 @@ export default function StoryCreate() {
           <Card className="bg-transparent">
             <CardHeader>
               <CardTitle className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600">
-                Welcome to StoryApp
+               Create a story
               </CardTitle>
             </CardHeader>
             <CardContent>

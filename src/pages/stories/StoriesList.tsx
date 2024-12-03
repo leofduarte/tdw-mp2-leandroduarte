@@ -220,8 +220,8 @@ export default function StoriesList() {
     <div className="min-h-screen bg-gradient-to-b from-[#242424] to-gray-900">
       <Navbar />
       <div className="p-8">
-        <h1 className="text-4xl font-bold text-center mb-8 text-white">
-          Explore Stories
+        <h1 className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600">
+        Explore Stories
         </h1>
 
         <div className="flex flex-col md:flex-row items-center justify-end mb-8 space-y-4 md:space-y-0 md:space-x-4">
