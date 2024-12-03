@@ -12,7 +12,7 @@ const AboutUs: React.FC = () => {
           <h1 className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600">
             About StoryApp
           </h1>
-          <p className="text-center max-w-2xl text-gray-300">
+          <p className="text-center max-w-2xl text-gray-300 text-xl">
             StoryApp is an interactive storytelling platform that allows you to
             create, manage, and visualize stories with branching narratives.
             Whether you're an aspiring writer or a seasoned storyteller,
@@ -20,10 +20,10 @@ const AboutUs: React.FC = () => {
             stories.
           </p>
           <div className="gap-4 flex flex-col">
-            <p className="text-center text-xl max-w-2xl text-gray-300 font-bold">
+            <p className="text-center text-2xl max-w-2xl text-gray-300 font-bold">
               With StoryApp, you can:
             </p>
-            <ul className="list-disc list-inside text-gray-300">
+            <ul className="list-disc list-inside text-gray-300 text-xl">
               <li>
                 Create interactive stories with multiple chapters and choices.
               </li>
@@ -42,7 +42,7 @@ const AboutUs: React.FC = () => {
             </ul>
           </div>
           <Link to="/create-story">
-            <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 transition">
+            <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 transition text-xl">
               Start Creating
             </Button>
           </Link>
